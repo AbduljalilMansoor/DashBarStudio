@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useVehicle } from '../../context/VehicleContext';
 import {
   Usb,
@@ -116,12 +116,39 @@ export const WebInstaller: React.FC = () => {
     }
   };
 
+  const carRef = useRef<any>(null);
+
   const handleConnectCar = async () => {
     setStatus('Requesting WebUSB permission from browser...');
     addLog('Searching for Jetour G700 / Android Automotive USB interface...');
 
     try {
-      if ((navigator as any).usb) {
+      if ((window as any).G700Adb && (window as any).G700Adb.supported()) {
+        const c = await (window as any).G700Adb.connect();
+        if (!c) {
+          setStatus('No device selected or user cancelled picker.');
+          addLog('WebUSB device picker closed.');
+          return;
+        }
+        carRef.current = c;
+        c.disconnected.then(() => {
+          carRef.current = null;
+          setDevice(null);
+          setStatus('Car disconnected.');
+          addLog('USB connection closed.');
+        });
+
+        const model = (await c.getProp('ro.product.model')) || 'Jetour G700';
+        const android = (await c.getProp('ro.build.version.release')) || '11';
+        setDevice({
+          model,
+          android: `Android ${android} Automotive`,
+          serial: c.serial
+        });
+        setStatus(`Connected to Jetour G700 (${model})! Ready to install DashBar.`);
+        addLog(`Authenticated with Jetour G700: ${model} (Serial: ${c.serial})`);
+        return;
+      } else if ((navigator as any).usb) {
         const usbDevice = await (navigator as any).usb.requestDevice({ filters: [] });
         if (usbDevice) {
           setDevice({
@@ -129,75 +156,106 @@ export const WebInstaller: React.FC = () => {
             android: 'Android 11 Automotive (API 30)',
             serial: usbDevice.serialNumber || 'G700-AL-2026-X9'
           });
-          setStatus('Connected to Jetour G700. Ready to install from ' + selectedRepo);
-          addLog(`Device authenticated: ${usbDevice.productName || 'Jetour G700'}`);
-          addLog('ADB authorized over WebUSB. Ready for installation.');
+          setStatus('Connected to Jetour G700. Ready to install.');
+          addLog(`Device connected: ${usbDevice.productName || 'Jetour G700'}`);
           return;
         }
       }
     } catch (err: any) {
+      const msg = String(err?.message || err);
       if (err.name === 'NotFoundError') {
-        setStatus('Device picker closed by user.');
+        setStatus('Device picker closed.');
         addLog('Device selection cancelled.');
         return;
       }
+      if (/auth|reject|denied/i.test(msg)) {
+        setStatus('Car unauthorized! Please tap "Allow USB debugging" on the car screen.');
+        addLog('Car rejected connection: Authorization popup on the car screen must be approved.');
+        return;
+      }
+      if (/claim|busy|access denied/i.test(msg)) {
+        setStatus('Device busy! Please run "adb kill-server" on your PC and close any other ADB programs.');
+        addLog('Error: USB port is in use by another program (e.g. adb.exe). Run "adb kill-server".');
+        return;
+      }
+      setStatus('Connection failed: ' + msg);
+      addLog('Error: ' + msg);
+      return;
     }
 
-    // Simulated connection for testing
-    setTimeout(() => {
-      setDevice({
-        model: 'Jetour G700 Head Unit (Chery AutoLink)',
-        android: 'Android 11 Automotive (API 30)',
-        serial: 'G700-AL-8849-V2'
-      });
-      setStatus('Connected to Jetour G700. Ready to install from ' + selectedRepo);
-      addLog('Device authenticated: Jetour G700 (AutoLink OS)');
-      addLog('ADB authorized over WebUSB. Ready for installation.');
-    }, 800);
+    // Fallback if no WebUSB hardware attached
+    setStatus('Ready. Plug USB cable from computer into Jetour G700.');
   };
 
-  const handleInstallDashBar = () => {
+  const handleInstallDashBar = async () => {
     setInstalling(true);
-    setProgress(5);
-    addLog(`Fetching APK package directly from repository: ${selectedRepo}...`);
+    setProgress(10);
+    addLog('Downloading dashbar.apk binary into memory...');
 
-    const steps = [
-      { pct: 20, log: `Streaming ${releaseInfo?.apkName || 'dashbar.apk'} to /data/local/tmp/dashbar.apk...` },
-      { pct: 45, log: 'Verifying SHA-256 integrity and package signature (com.dashbar.app)...' },
-      { pct: 60, log: 'Executing ADB: pm install -r -d /data/local/tmp/dashbar.apk -> Success' },
-      { pct: 75, log: 'Granting SYSTEM_ALERT_WINDOW (Edge Dock overlay)...' },
-      { pct: 85, log: 'Granting GET_USAGE_STATS (Running apps monitor)...' },
-      { pct: 92, log: 'Granting REQUEST_INSTALL_PACKAGES (In-app updates)...' },
-      { pct: 97, log: 'Exempting from battery optimization: dumpsys deviceidle whitelist +com.dashbar.app...' },
-      { pct: 100, log: `Installation complete! DashBar v1.0.64 from ${selectedRepo} is running.` }
-    ];
+    try {
+      const res = await fetch('/dashbar.apk');
+      if (!res.ok) throw new Error('Failed to load dashbar.apk from server');
+      const buffer = await res.arrayBuffer();
+      const bytes = new Uint8Array(buffer);
+      addLog(`APK loaded (${(bytes.length / 1048576).toFixed(1)} MB). Starting install on car...`);
 
-    let currentStep = 0;
-    const interval = setInterval(() => {
-      if (currentStep < steps.length) {
-        const s = steps[currentStep];
-        setProgress(s.pct);
-        addLog(s.log);
-        currentStep++;
-      } else {
-        clearInterval(interval);
+      if (carRef.current) {
+        // Real installation through WebADB Tango
+        await carRef.current.install(bytes, (pct: number) => {
+          setProgress(10 + Math.round(pct * 65));
+        });
+
+        addLog('APK successfully written to system. Granting permissions...');
+        setProgress(80);
+        await carRef.current.shell('appops set com.dashbar.app SYSTEM_ALERT_WINDOW allow');
+        setProgress(85);
+        await carRef.current.shell('appops set com.dashbar.app GET_USAGE_STATS allow');
+        setProgress(90);
+        await carRef.current.shell('appops set com.dashbar.app REQUEST_INSTALL_PACKAGES allow');
+        setProgress(93);
+        await carRef.current.shell('dumpsys deviceidle whitelist +com.dashbar.app');
+        setProgress(96);
+        await carRef.current.shell('appops set com.dashbar.app RUN_IN_BACKGROUND allow');
+
+        addLog('Launching DashBar on car screen...');
+        setProgress(98);
+        await carRef.current.shell('am start -n com.dashbar.app/.MainActivity');
+        setProgress(100);
         setInstalling(false);
-        setStatus(`Successfully installed from ${selectedRepo}! DashBar is active on your screen.`);
+        setStatus('Installation complete! DashBar edge tab is now active on the right edge of your screen.');
+        addLog('Success: DashBar started on car head unit!');
+        return;
       }
-    }, 600);
+    } catch (err: any) {
+      addLog(`Install error: ${err?.message || err}`);
+      setStatus(`Install error: ${err?.message || err}`);
+    }
+
+    setInstalling(false);
   };
 
-  const adbShellCommands = `# 1. Install DashBar APK onto Jetour G700
+  const adbShellCommands = `# --- STEP 1: FIX UNAUTHORIZED (If adb says device unauthorized) ---
+# 1. Run this in your computer terminal:
+adb kill-server
+
+# 2. Unplug USB cable and plug it back into the car.
+# 3. LOOK AT THE CAR SCREEN: A dialog "Allow USB debugging?" will appear.
+#    Tick "Always allow from this computer" and tap "OK" / "Allow".
+
+# 4. Verify the car is authorized (it must show "device", not "unauthorized"):
+adb devices
+
+# --- STEP 2: INSTALL DASHBAR ---
 adb install -r -d dashbar.apk
 
-# 2. Grant permissions required for Edge Dock and reminders
+# --- STEP 3: GRANT OVERLAY & USAGE PERMISSIONS ---
 adb shell appops set com.dashbar.app SYSTEM_ALERT_WINDOW allow
 adb shell appops set com.dashbar.app GET_USAGE_STATS allow
 adb shell appops set com.dashbar.app REQUEST_INSTALL_PACKAGES allow
 adb shell dumpsys deviceidle whitelist +com.dashbar.app
 adb shell appops set com.dashbar.app RUN_IN_BACKGROUND allow
 
-# 3. Start DashBar
+# --- STEP 4: LAUNCH DASHBAR ON CAR SCREEN ---
 adb shell am start -n com.dashbar.app/.MainActivity`;
 
   const copyAdbCommands = () => {
@@ -239,6 +297,74 @@ adb shell am start -n com.dashbar.app/.MainActivity`;
           <div className="px-3 py-1 rounded-xl bg-[#17202d] border border-white/10 flex items-center gap-1.5 text-slate-300">
             <span className="text-slate-400">Security:</span>
             <span className="font-bold text-emerald-400 font-mono">Secure HTTPS</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Troubleshooting & Where to Find DashBar Card */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-5 bg-gradient-to-r from-[#101726] to-[#0c121e] rounded-2xl border border-amber-500/30 shadow-lg text-xs">
+        {/* Issue 1: Device Unauthorized & Popup Not Appearing */}
+        <div className="space-y-3 pr-0 md:pr-4 md:border-r border-white/10">
+          <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{t('Why the "Allow USB Debugging" Popup Isn\'t Appearing', 'لماذا لا تظهر رسالة السماح بتصحيح USB على شاشة السيارة؟')}</span>
+          </div>
+          <p className="text-slate-300 leading-relaxed text-[11px]">
+            {t(
+              'On Jetour G700 / Chery head units, the popup will NEVER appear until USB Debugging is turned ON in Developer Options or Engineering Mode. Follow these steps:',
+              'في سيارات جيتور G700 وشيري، لن تظهر هذه الرسالة أبداً إلا بعد تفعيل "تصحيح أخطاء USB" في خيارات المطور أو القائمة الهندسية:'
+            )}
+          </p>
+
+          <div className="space-y-2 text-[11px] bg-black/40 p-3 rounded-xl border border-white/5">
+            <div className="font-bold text-amber-300 flex items-center gap-1.5">
+              <span>1. {t('Enable Developer Options on Car:', '1. تفعيل وضع المطور في شاشة السيارة:')}</span>
+            </div>
+            <div className="text-slate-300 pl-3 space-y-1">
+              <div>• {t('Go to Car Settings -> System / About -> tap "Software Version" or "MCU" 7 to 10 times rapidly.', 'ادخل الإعدادات -> النظام / حول النظام -> اضغط على "إصدار البرنامج" 7 إلى 10 مرات متتالية.')}</div>
+              <div>• {t('When prompted for PIN, enter:', 'إذا طلب رمز سري، جرب أحد الرموز:')} <code className="text-teal-300 font-bold font-mono">123456</code> / <code className="text-teal-300 font-bold font-mono">888888</code> / <code className="text-teal-300 font-bold font-mono">202008</code></div>
+              <div>• {t('Inside Developer Options, turn ON: "USB Debugging".', 'من داخل خيارات المطور، فعّل خيار: "تصحيح أخطاء USB" (USB Debugging).')}</div>
+            </div>
+
+            <div className="font-bold text-amber-300 flex items-center gap-1.5 pt-1">
+              <span>2. {t('Verify USB Port & Cable:', '2. التأكد من منفذ الـ USB وسلك التوصيل:')}</span>
+            </div>
+            <div className="text-slate-300 pl-3 space-y-1">
+              <div>• {t('Use the FRONT USB DATA port (marked with phone/USB icon), not the rear or fast-charge only ports.', 'استخدم منفذ البيانات الأمامي (الموسوم بأيقونة الهاتف/USB) وليس منافذ الشحن فقط.')}</div>
+              <div>• {t('Ensure you are using a Data USB cable (not charge-only).', 'تأكد أن السلك ينقل بيانات وليس للشحن فقط.')}</div>
+            </div>
+
+            <div className="font-bold text-amber-300 flex items-center gap-1.5 pt-1">
+              <span>3. {t('Reset ADB on PC to Trigger Popup:', '3. إجبار ظهور الرسالة عبر الكمبيوتر:')}</span>
+            </div>
+            <div className="text-slate-300 pl-3 font-mono text-[10.5px] space-y-1">
+              <div className="text-emerald-400">adb kill-server</div>
+              <div className="text-emerald-400">adb devices</div>
+              <div className="text-slate-400 font-sans text-[10px]">{t('(The popup will now pop up on the car screen!)', '(ستظهر النافذة المنبثقة فوراً على الشاشة!)')}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Issue 2: Where is the App? */}
+        <div className="space-y-3 pl-0 md:pl-2">
+          <div className="flex items-center gap-2 text-teal-400 font-bold text-sm">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>{t('Installed but no app appeared? Where is DashBar?', 'تم التثبيت ولكن لم يظهر تطبيق؟ أين DashBar؟')}</span>
+          </div>
+          <p className="text-slate-300 leading-relaxed text-[11px]">
+            {t(
+              'DashBar is NOT a standard full-screen app. It is an edge overlay bar! Look at the right edge of your car screen for a slim vertical handle (with Bahrain flag accent). Swipe it inward to open the drawer.',
+              'تطبيق DashBar ليس تطبيقاً عادياً يحل محل شاشة السيارة، بل هو شريط سحب جانبي يظهر على الحافة اليمنى للشاشة! اسحب من الحافة اليمنى لفتح قائمة التطبيقات.'
+            )}
+          </p>
+          <div className="space-y-2 pt-1 text-[11px]">
+            <div className="text-slate-400">{t('To launch or bring up the Settings panel now, run:', 'لتشغيل التطبيق أو فتح لوحة الإعدادات الآن:')}</div>
+            <div className="p-2 bg-black/60 rounded-lg border border-white/10 font-mono text-teal-300 space-y-1">
+              <div># {t('Start the edge overlay service:', 'تشغيل خدمة الشريط الجانبي:')}</div>
+              <div className="text-white select-all">adb shell am start -n com.dashbar.app/.MainActivity</div>
+              <div className="text-slate-500 pt-1"># {t('Open Settings to configure apps & widgets:', 'فتح الإعدادات لتحديد التطبيقات والويدجت:')}</div>
+              <div className="text-white select-all">adb shell am start -n com.dashbar.app/.SettingsActivity</div>
+            </div>
           </div>
         </div>
       </div>
