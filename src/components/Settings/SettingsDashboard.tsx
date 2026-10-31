@@ -646,7 +646,9 @@ export const SettingsDashboard: React.FC = () => {
               </div>
 
               <button
-                onClick={() => alert('DashBar is on the newest stable version (v1.0.64).')}
+                onClick={() => {
+                  alert(`Update channel: AbduljalilMansoor/dashbarstudio\nInstalled version: v1.0.64 (Up to date).\n\nYou can also flash directly or pull releases from the WebUSB Installer tab.`);
+                }}
                 className="px-3.5 py-1.5 rounded-xl bg-[#17202d] hover:bg-[#202b3c] border border-white/10 text-teal-300 text-xs font-bold transition-colors cursor-pointer"
               >
                 {t('Check for updates', 'التحقق من التحديثات')}

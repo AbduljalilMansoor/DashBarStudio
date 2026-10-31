@@ -19,6 +19,15 @@ import {
 
 const INITIAL_CATALOG: StoreCatalogApp[] = [
   {
+    name: 'DashBar Studio Official',
+    package: 'com.dashbar.app',
+    github: 'AbduljalilMansoor/dashbarstudio',
+    description: 'Official DashBar Studio release with edge drawer, cluster widgets, and safety reminders.',
+    auto: true,
+    version: '1.0.64',
+    installedVersion: '1.0.64'
+  },
+  {
     name: 'Aptoide Store',
     package: 'cm.aptoide.pt',
     aptoide: 'cm.aptoide.pt',
