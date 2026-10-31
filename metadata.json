@@ -1,0 +1,6 @@
+{
+  "name": "DashBar",
+  "description": "Quick-launch drawer, DashDeck instrument cluster widgets, vehicle telemetry & trip analyzer for Jetour G700 and Android Automotive head units.",
+  "permissions": [],
+  "capabilities": []
+}

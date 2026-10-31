@@ -1,0 +1,4 @@
+[
+  {"name": "Aptoide", "package": "cm.aptoide.pt", "aptoide": "cm.aptoide.pt",
+   "description": "Third-party app store. Newest version is fetched from Aptoide.", "auto": false}
+]

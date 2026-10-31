@@ -1,0 +1,13 @@
+plugins {
+    id 'base'
+}
+
+task npmBuild(type: Exec) {
+    commandLine 'npx', 'vite', 'build'
+}
+
+task assembleDebug(dependsOn: npmBuild) {
+}
+
+build.dependsOn npmBuild
+defaultTasks 'npmBuild'

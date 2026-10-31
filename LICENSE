@@ -1,0 +1,23 @@
+DashBar - Proprietary License
+
+Copyright (c) 2026 Abduljalil Alyusif. All rights reserved.
+
+This software, including its source code, compiled application (APK), install page and documentation ("the Software"),
+is the exclusive property of the copyright holder.
+
+Permission is granted ONLY to install and use the officially released application on vehicles or devices you own or
+are authorised to use, free of charge or under the terms the copyright holder has given you in writing.
+
+Without prior written permission from the copyright holder you may NOT:
+  - copy, modify, translate, adapt or create derivative works of the Software;
+  - redistribute, sell, rent, sublicense or publish the Software or any part of it;
+  - decompile, disassemble or reverse engineer the Software, except where the law expressly allows it despite this limit;
+  - remove or change copyright notices, or present the Software as your own work.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. It reads and controls vehicle functions through interfaces
+provided by the vehicle's own software and may stop working after a system update. Use it at your own risk; it does not
+replace the vehicle's own safety systems.
+
+DashBar is not affiliated with, endorsed by or sponsored by Jetour, Chery or Autolink. All product names belong to their owners.
+
+Third-party components keep their own licences (see site/vendor/LICENSES.txt).
