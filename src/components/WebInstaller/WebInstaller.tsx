@@ -40,14 +40,15 @@ export const WebInstaller: React.FC = () => {
   // Repository selection
   const [selectedRepo, setSelectedRepo] = useState('AbduljalilMansoor/dashbarstudio');
   const [isFetchingRelease, setIsFetchingRelease] = useState(false);
+  const [repoHasNoGitHubReleaseYet, setRepoHasNoGitHubReleaseYet] = useState(false);
   const [releaseInfo, setReleaseInfo] = useState<ReleaseInfo | null>({
     tagName: 'v1.0.64',
-    name: 'DashBar Studio v1.0.64 Release',
+    name: 'DashBar Studio v1.0.64 (Direct Build)',
     publishedAt: '2026-10-31',
-    apkUrl: 'https://github.com/AbduljalilMansoor/dashbarstudio/releases/download/v1.0.64/dashbar.apk',
-    apkName: 'dashbar-release.apk',
-    apkSizeMb: 14.2,
-    body: 'Latest stable release with full Jetour G700 Display 2 cluster overlay, Quick-launch drawer, and sound synthesizer.',
+    apkUrl: '/dashbar.apk',
+    apkName: 'dashbar.apk',
+    apkSizeMb: 2.7,
+    body: 'Complete built APK ready for direct WebUSB flash or USB drive installation.',
     repo: 'AbduljalilMansoor/dashbarstudio'
   });
 
@@ -83,30 +84,33 @@ export const WebInstaller: React.FC = () => {
           tagName: data.tag_name || 'latest',
           name: data.name || data.tag_name || 'Release',
           publishedAt: data.published_at ? data.published_at.slice(0, 10) : 'Recent',
-          apkUrl: apkAsset?.browser_download_url || null,
+          apkUrl: apkAsset?.browser_download_url || '/dashbar.apk',
           apkName: apkAsset?.name || 'dashbar.apk',
-          apkSizeMb: apkAsset ? Math.round((apkAsset.size / 1048576) * 10) / 10 : 14.2,
-          body: data.body || 'No release notes provided.',
+          apkSizeMb: apkAsset ? Math.round((apkAsset.size / 1048576) * 10) / 10 : 2.7,
+          body: data.body || 'Release from GitHub repository.',
           repo: repoName
         };
         setReleaseInfo(info);
-        addLog(`Found release: ${info.tagName} (${info.apkName || 'no APK attached'})`);
+        setRepoHasNoGitHubReleaseYet(false);
+        addLog(`Found GitHub release: ${info.tagName} (${info.apkName})`);
       } else {
-        // Fallback default release for new repo
+        // Repository has no GitHub release published yet
+        setRepoHasNoGitHubReleaseYet(true);
         setReleaseInfo({
           tagName: 'v1.0.64',
-          name: 'DashBar Studio v1.0.64',
+          name: 'DashBar Studio v1.0.64 (Direct Build Package)',
           publishedAt: new Date().toISOString().slice(0, 10),
-          apkUrl: `https://github.com/${repoName}/releases/latest`,
+          apkUrl: '/dashbar.apk',
           apkName: 'dashbar.apk',
-          apkSizeMb: 14.2,
-          body: 'Direct release from repository',
+          apkSizeMb: 2.7,
+          body: 'Directly compiled DashBar APK ready for installation.',
           repo: repoName
         });
-        addLog(`Configured repository source: ${repoName}`);
+        addLog(`No releases published yet on github.com/${repoName}. Using built dashbar.apk (2.7 MB).`);
       }
     } catch (e) {
-      addLog(`Connected to repository profile: ${repoName}`);
+      setRepoHasNoGitHubReleaseYet(true);
+      addLog(`Using built dashbar.apk package for ${repoName}.`);
     } finally {
       setIsFetchingRelease(false);
     }
@@ -330,13 +334,12 @@ adb shell am start -n com.dashbar.app/.MainActivity`;
 
             <div className="flex items-center gap-2">
               <a
-                href={releaseInfo.apkUrl || `https://github.com/${selectedRepo}/releases/latest`}
-                target="_blank"
-                rel="noreferrer"
-                className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center gap-1.5 transition-colors"
+                href={releaseInfo.apkUrl || '/dashbar.apk'}
+                download={releaseInfo.apkName || 'dashbar.apk'}
+                className="px-3.5 py-1.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow transition-all cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5" />
-                {t('Download APK', 'تنزيل APK')}
+                {t('Download dashbar.apk', 'تنزيل APK')}
               </a>
               <a
                 href={`https://github.com/${selectedRepo}`}
@@ -346,6 +349,40 @@ adb shell am start -n com.dashbar.app/.MainActivity`;
                 title="Open GitHub Repository"
               >
                 <ExternalLink className="w-4 h-4" />
+              </a>
+            </div>
+          </div>
+        )}
+
+        {repoHasNoGitHubReleaseYet && (
+          <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-500/40 text-xs space-y-2.5">
+            <div className="flex items-center gap-2 text-amber-300 font-bold">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{t('Why does "releases/latest" show 404 on GitHub?', 'لماذا يظهر رابط الإصدارات 404 في GitHub؟')}</span>
+            </div>
+            <p className="text-slate-300 leading-relaxed text-[11px]">
+              {t(
+                `The link https://github.com/${selectedRepo}/releases/latest only exists after you publish your first release on GitHub. You can download the already built dashbar.apk (2.7 MB) directly below, install it now, and upload it to GitHub in 30 seconds:`,
+                `رابط الإصدارات في GitHub يظهر فارغاً لأن المستودع جديد ولم يتم نشر أي إصدار (Release) فيه بعد. ملف الـ APK مبني وجاهز للتحميل والتثبيت المباشر أدناه (2.7 ميغابايت):`
+              )}
+            </p>
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <a
+                href="/dashbar.apk"
+                download="dashbar.apk"
+                className="px-3 py-1.5 rounded-lg bg-teal-500 text-slate-950 font-bold flex items-center gap-1.5 shadow hover:bg-teal-400 transition-colors"
+              >
+                <Download className="w-3.5 h-3.5" />
+                {t('1. Download Built dashbar.apk (2.7 MB)', '1. تنزيل ملف dashbar.apk الجاهز')}
+              </a>
+              <a
+                href={`https://github.com/${selectedRepo}/releases/new`}
+                target="_blank"
+                rel="noreferrer"
+                className="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold flex items-center gap-1.5 hover:bg-amber-500/30 transition-colors"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                {t('2. Publish First Release on GitHub', '2. نشر الإصدار في GitHub')}
               </a>
             </div>
           </div>
