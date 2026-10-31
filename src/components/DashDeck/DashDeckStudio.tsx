@@ -85,7 +85,7 @@ export const DashDeckStudio: React.FC = () => {
 
   // Saved / Deployed layout state
   const [widgets, setWidgets] = useState<DashDeckWidgetConfig[]>(() => {
-    const saved = localStorage.getItem('dashbar_dashdeck_widgets');
+    const saved = localStorage.getItem('mydash_dashdeck_widgets') || localStorage.getItem('dashbar_dashdeck_widgets');
     return saved ? JSON.parse(saved) : DEFAULT_WIDGETS;
   });
 
@@ -115,7 +115,7 @@ export const DashDeckStudio: React.FC = () => {
 
   const saveLayout = (newWidgets: DashDeckWidgetConfig[]) => {
     setWidgets(newWidgets);
-    localStorage.setItem('dashbar_dashdeck_widgets', JSON.stringify(newWidgets));
+    localStorage.setItem('mydash_dashdeck_widgets', JSON.stringify(newWidgets));
     setIsDeployed(true);
   };
 

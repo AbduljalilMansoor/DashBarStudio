@@ -609,7 +609,7 @@ export const SettingsDashboard: React.FC = () => {
                 { name: 'Install updates (REQUEST_INSTALL_PACKAGES)', status: 'Granted' },
                 { name: 'Start with the car (Notification Listener)', status: 'Granted' },
                 { name: 'Keep running in background (Battery whitelist)', status: 'Exempted' },
-                { name: 'DashBar services (Alerts & Dock watchdog)', status: 'Active (Running)' }
+                { name: 'MyDash services (Alerts & Dock watchdog)', status: 'Active (Running)' }
               ].map(row => (
                 <div
                   key={row.name}
@@ -774,18 +774,18 @@ export const SettingsDashboard: React.FC = () => {
           <div className="p-4 rounded-2xl bg-[#111722] border border-white/10 space-y-3">
             <button
               onClick={() => {
-                if (confirm('Reset DashBar settings and restore defaults?')) {
+                if (confirm('Reset MyDash settings and restore defaults?')) {
                   localStorage.clear();
                   window.location.reload();
                 }
               }}
               className="w-full py-2.5 rounded-xl bg-red-950/20 hover:bg-red-950/40 text-red-400 border border-red-500/20 text-xs font-bold transition-colors cursor-pointer"
             >
-              {t('Reset DashBar Settings', 'إعادة تعيين إعدادات DashBar')}
+              {t('Reset MyDash Settings', 'إعادة تعيين إعدادات MyDash')}
             </button>
 
             <p className="text-[11px] text-slate-500 text-center leading-relaxed font-mono">
-              DashBar v1.0.64 · © 2026 Abduljalil Alyusif. All rights reserved.
+              MyDash v1.0.64 · © 2026 Abduljalil Alyusif. All rights reserved.
               <br />
               Not affiliated with Jetour, Chery, or Autolink.
             </p>

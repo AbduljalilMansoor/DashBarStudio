@@ -101,8 +101,8 @@ export const VehicleHUD: React.FC = () => {
               </span>
               <span className="text-xs opacity-90">
                 {t(
-                  'Active DashBar safety reminder protocol sounding in cabin / exterior speaker.',
-                  'بروتوكول تنبيه السلامة في DashBar يعمل حالياً عبر السماعات.'
+                  'Active MyDash safety reminder protocol sounding in cabin / exterior speaker.',
+                  'بروتوكول تنبيه السلامة في MyDash يعمل حالياً عبر السماعات.'
                 )}
               </span>
             </div>

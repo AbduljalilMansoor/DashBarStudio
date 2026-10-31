@@ -126,7 +126,7 @@ export const TripManager: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `DashBar_trips_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `MyDash_trips_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };

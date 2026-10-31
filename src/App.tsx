@@ -57,11 +57,11 @@ const MainShell: React.FC = () => {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
               <span className="w-8 h-8 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-400 text-slate-950 font-black text-lg flex items-center justify-center font-mono shadow-md">
-                Q
+                M
               </span>
               <div className="flex flex-col">
                 <span className="font-extrabold text-base tracking-wide text-white leading-tight">
-                  DashBar
+                  MyDash
                 </span>
                 <span className="text-[10px] text-teal-400 font-mono tracking-wider">
                   JETOUR G700 · AUTOLINK OS
@@ -128,7 +128,7 @@ const MainShell: React.FC = () => {
         {activeTab === 'signal_hunter' && <SignalMonitorFull />}
       </main>
 
-      {/* Floating DashBar Edge Dock (Always Available on Screen Edge) */}
+      {/* Floating MyDash Edge Dock (Always Available on Screen Edge) */}
       <EdgeDock />
     </div>
   );

@@ -1,4 +1,4 @@
-// Types for DashBar
+// Types for MyDash
 export type Gear = 'P' | 'R' | 'N' | 'D';
 export type DriveMode = 'Normal' | 'Sport' | 'Eco' | 'Snow' | 'Mud' | 'Sand' | 'Rock';
 export type PowerMode = 'OFF' | 'ACC' | 'ON' | 'START';

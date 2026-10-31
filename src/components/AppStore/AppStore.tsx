@@ -19,10 +19,10 @@ import {
 
 const INITIAL_CATALOG: StoreCatalogApp[] = [
   {
-    name: 'DashBar Studio Official',
+    name: 'MyDash Official',
     package: 'com.dashbar.app',
     github: 'AbduljalilMansoor/dashbarstudio',
-    description: 'Official DashBar Studio release with edge drawer, cluster widgets, and safety reminders.',
+    description: 'Official MyDash release with edge drawer, cluster widgets, and safety reminders.',
     auto: true,
     version: '1.0.64',
     installedVersion: '1.0.64'
@@ -135,7 +135,7 @@ export const AppStore: React.FC = () => {
           </div>
           <div>
             <h2 className="text-base font-bold text-white flex items-center gap-2">
-              DashBar Store & App Library
+              MyDash Store & App Library
               <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-teal-500/20 text-teal-300 border border-teal-500/30">
                 GitHub & Aptoide Releases
               </span>

@@ -43,10 +43,10 @@ export const WebInstaller: React.FC = () => {
   const [repoHasNoGitHubReleaseYet, setRepoHasNoGitHubReleaseYet] = useState(false);
   const [releaseInfo, setReleaseInfo] = useState<ReleaseInfo | null>({
     tagName: 'v1.0.64',
-    name: 'DashBar Studio v1.0.64 (Direct Build)',
+    name: 'MyDash v1.0.64 (Direct Build)',
     publishedAt: '2026-10-31',
-    apkUrl: '/dashbar.apk',
-    apkName: 'dashbar.apk',
+    apkUrl: '/mydash.apk',
+    apkName: 'mydash.apk',
     apkSizeMb: 2.7,
     body: 'Complete built APK ready for direct WebUSB flash or USB drive installation.',
     repo: 'AbduljalilMansoor/dashbarstudio'
@@ -84,8 +84,8 @@ export const WebInstaller: React.FC = () => {
           tagName: data.tag_name || 'latest',
           name: data.name || data.tag_name || 'Release',
           publishedAt: data.published_at ? data.published_at.slice(0, 10) : 'Recent',
-          apkUrl: apkAsset?.browser_download_url || '/dashbar.apk',
-          apkName: apkAsset?.name || 'dashbar.apk',
+          apkUrl: apkAsset?.browser_download_url || '/mydash.apk',
+          apkName: apkAsset?.name || 'mydash.apk',
           apkSizeMb: apkAsset ? Math.round((apkAsset.size / 1048576) * 10) / 10 : 2.7,
           body: data.body || 'Release from GitHub repository.',
           repo: repoName
@@ -98,19 +98,19 @@ export const WebInstaller: React.FC = () => {
         setRepoHasNoGitHubReleaseYet(true);
         setReleaseInfo({
           tagName: 'v1.0.64',
-          name: 'DashBar Studio v1.0.64 (Direct Build Package)',
+          name: 'MyDash v1.0.64 (Direct Build Package)',
           publishedAt: new Date().toISOString().slice(0, 10),
-          apkUrl: '/dashbar.apk',
-          apkName: 'dashbar.apk',
+          apkUrl: '/mydash.apk',
+          apkName: 'mydash.apk',
           apkSizeMb: 2.7,
-          body: 'Directly compiled DashBar APK ready for installation.',
+          body: 'Directly compiled MyDash APK ready for installation.',
           repo: repoName
         });
-        addLog(`No releases published yet on github.com/${repoName}. Using built dashbar.apk (2.7 MB).`);
+        addLog(`No releases published yet on github.com/${repoName}. Using built mydash.apk (2.7 MB).`);
       }
     } catch (e) {
       setRepoHasNoGitHubReleaseYet(true);
-      addLog(`Using built dashbar.apk package for ${repoName}.`);
+      addLog(`Using built mydash.apk package for ${repoName}.`);
     } finally {
       setIsFetchingRelease(false);
     }
@@ -145,7 +145,7 @@ export const WebInstaller: React.FC = () => {
           android: `Android ${android} Automotive`,
           serial: c.serial
         });
-        setStatus(`Connected to Jetour G700 (${model})! Ready to install DashBar.`);
+        setStatus(`Connected to Jetour G700 (${model})! Ready to install MyDash.`);
         addLog(`Authenticated with Jetour G700: ${model} (Serial: ${c.serial})`);
         return;
       } else if ((navigator as any).usb) {
@@ -187,14 +187,14 @@ export const WebInstaller: React.FC = () => {
     setStatus('Ready. Plug USB cable from computer into Jetour G700.');
   };
 
-  const handleInstallDashBar = async () => {
+  const handleInstallMyDash = async () => {
     setInstalling(true);
     setProgress(10);
-    addLog('Downloading dashbar.apk binary into memory...');
+    addLog('Downloading mydash.apk binary into memory...');
 
     try {
-      const res = await fetch('/dashbar.apk');
-      if (!res.ok) throw new Error('Failed to load dashbar.apk from server');
+      const res = await fetch('/mydash.apk');
+      if (!res.ok) throw new Error('Failed to load mydash.apk from server');
       const buffer = await res.arrayBuffer();
       const bytes = new Uint8Array(buffer);
       addLog(`APK loaded (${(bytes.length / 1048576).toFixed(1)} MB). Starting install on car...`);
@@ -217,13 +217,13 @@ export const WebInstaller: React.FC = () => {
         setProgress(96);
         await carRef.current.shell('appops set com.dashbar.app RUN_IN_BACKGROUND allow');
 
-        addLog('Launching DashBar on car screen...');
+        addLog('Launching MyDash on car screen...');
         setProgress(98);
         await carRef.current.shell('am start -n com.dashbar.app/.MainActivity');
         setProgress(100);
         setInstalling(false);
-        setStatus('Installation complete! DashBar edge tab is now active on the right edge of your screen.');
-        addLog('Success: DashBar started on car head unit!');
+        setStatus('Installation complete! MyDash edge tab is now active on the right edge of your screen.');
+        addLog('Success: MyDash started on car head unit!');
         return;
       }
     } catch (err: any) {
@@ -245,8 +245,8 @@ adb kill-server
 # 4. Verify the car is authorized (it must show "device", not "unauthorized"):
 adb devices
 
-# --- STEP 2: INSTALL DASHBAR ---
-adb install -r -d dashbar.apk
+# --- STEP 2: INSTALL MYDASH ---
+adb install -r -d mydash.apk
 
 # --- STEP 3: GRANT OVERLAY & USAGE PERMISSIONS ---
 adb shell appops set com.dashbar.app SYSTEM_ALERT_WINDOW allow
@@ -255,7 +255,7 @@ adb shell appops set com.dashbar.app REQUEST_INSTALL_PACKAGES allow
 adb shell dumpsys deviceidle whitelist +com.dashbar.app
 adb shell appops set com.dashbar.app RUN_IN_BACKGROUND allow
 
-# --- STEP 4: LAUNCH DASHBAR ON CAR SCREEN ---
+# --- STEP 4: LAUNCH MYDASH ON CAR SCREEN ---
 adb shell am start -n com.dashbar.app/.MainActivity`;
 
   const copyAdbCommands = () => {
@@ -281,8 +281,8 @@ adb shell am start -n com.dashbar.app/.MainActivity`;
             </h2>
             <p className="text-xs text-slate-400">
               {t(
-                'Install DashBar on your car screen directly from GitHub repository or via WebUSB cable.',
-                'تثبيت DashBar على شاشة سيارة جيتور G700 مباشرة من مستودع dashbarstudio أو بوصلة USB.'
+                'Install MyDash on your car screen directly from GitHub repository or via WebUSB cable.',
+                'تثبيت MyDash على شاشة سيارة جيتور G700 مباشرة من مستودع dashbarstudio أو بوصلة USB.'
               )}
             </p>
           </div>
@@ -301,7 +301,7 @@ adb shell am start -n com.dashbar.app/.MainActivity`;
         </div>
       </div>
 
-      {/* Troubleshooting & Where to Find DashBar Card */}
+      {/* Troubleshooting & Where to Find MyDash Card */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-5 bg-gradient-to-r from-[#101726] to-[#0c121e] rounded-2xl border border-amber-500/30 shadow-lg text-xs">
         {/* Issue 1: Device Unauthorized & Popup Not Appearing */}
         <div className="space-y-3 pr-0 md:pr-4 md:border-r border-white/10">
@@ -349,12 +349,12 @@ adb shell am start -n com.dashbar.app/.MainActivity`;
         <div className="space-y-3 pl-0 md:pl-2">
           <div className="flex items-center gap-2 text-teal-400 font-bold text-sm">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>{t('Installed but no app appeared? Where is DashBar?', 'تم التثبيت ولكن لم يظهر تطبيق؟ أين DashBar؟')}</span>
+            <span>{t('Installed but no app appeared? Where is MyDash?', 'تم التثبيت ولكن لم يظهر تطبيق؟ أين MyDash؟')}</span>
           </div>
           <p className="text-slate-300 leading-relaxed text-[11px]">
             {t(
-              'DashBar is NOT a standard full-screen app. It is an edge overlay bar! Look at the right edge of your car screen for a slim vertical handle (with Bahrain flag accent). Swipe it inward to open the drawer.',
-              'تطبيق DashBar ليس تطبيقاً عادياً يحل محل شاشة السيارة، بل هو شريط سحب جانبي يظهر على الحافة اليمنى للشاشة! اسحب من الحافة اليمنى لفتح قائمة التطبيقات.'
+              'MyDash is NOT a standard full-screen app. It is an edge overlay bar! Look at the right edge of your car screen for a slim vertical handle (with Bahrain flag accent). Swipe it inward to open the drawer.',
+              'تطبيق MyDash ليس تطبيقاً عادياً يحل محل شاشة السيارة، بل هو شريط سحب جانبي يظهر على الحافة اليمنى للشاشة! اسحب من الحافة اليمنى لفتح قائمة التطبيقات.'
             )}
           </p>
           <div className="space-y-2 pt-1 text-[11px]">
@@ -460,12 +460,12 @@ adb shell am start -n com.dashbar.app/.MainActivity`;
 
             <div className="flex items-center gap-2">
               <a
-                href={releaseInfo.apkUrl || '/dashbar.apk'}
-                download={releaseInfo.apkName || 'dashbar.apk'}
+                href={releaseInfo.apkUrl || '/mydash.apk'}
+                download={releaseInfo.apkName || 'mydash.apk'}
                 className="px-3.5 py-1.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow transition-all cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5" />
-                {t('Download dashbar.apk', 'تنزيل APK')}
+                {t('Download mydash.apk', 'تنزيل APK')}
               </a>
               <a
                 href={`https://github.com/${selectedRepo}`}
@@ -488,18 +488,18 @@ adb shell am start -n com.dashbar.app/.MainActivity`;
             </div>
             <p className="text-slate-300 leading-relaxed text-[11px]">
               {t(
-                `The link https://github.com/${selectedRepo}/releases/latest only exists after you publish your first release on GitHub. You can download the already built dashbar.apk (2.7 MB) directly below, install it now, and upload it to GitHub in 30 seconds:`,
+                `The link https://github.com/${selectedRepo}/releases/latest only exists after you publish your first release on GitHub. You can download the already built mydash.apk (2.7 MB) directly below, install it now, and upload it to GitHub in 30 seconds:`,
                 `رابط الإصدارات في GitHub يظهر فارغاً لأن المستودع جديد ولم يتم نشر أي إصدار (Release) فيه بعد. ملف الـ APK مبني وجاهز للتحميل والتثبيت المباشر أدناه (2.7 ميغابايت):`
               )}
             </p>
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <a
-                href="/dashbar.apk"
-                download="dashbar.apk"
+                href="/mydash.apk"
+                download="mydash.apk"
                 className="px-3 py-1.5 rounded-lg bg-teal-500 text-slate-950 font-bold flex items-center gap-1.5 shadow hover:bg-teal-400 transition-colors"
               >
                 <Download className="w-3.5 h-3.5" />
-                {t('1. Download Built dashbar.apk (2.7 MB)', '1. تنزيل ملف dashbar.apk الجاهز')}
+                {t('1. Download Built mydash.apk (2.7 MB)', '1. تنزيل ملف mydash.apk الجاهز')}
               </a>
               <a
                 href={`https://github.com/${selectedRepo}/releases/new`}
@@ -531,7 +531,7 @@ adb shell am start -n com.dashbar.app/.MainActivity`;
 
             <p className="text-xs text-slate-400 leading-relaxed">
               {t(
-                'Connect your laptop to the Jetour G700 USB data port. DashBar installs and grants all necessary permissions in 60 seconds.',
+                'Connect your laptop to the Jetour G700 USB data port. MyDash installs and grants all necessary permissions in 60 seconds.',
                 'وصّل الكمبيوتر بمنفذ USB في سيارة جيتور G700 وسيقوم المتصفح بتثبيت التطبيق ومنح كافة الصلاحيات تلقائياً.'
               )}
             </p>
@@ -569,14 +569,14 @@ adb shell am start -n com.dashbar.app/.MainActivity`;
               </button>
             ) : (
               <button
-                onClick={handleInstallDashBar}
+                onClick={handleInstallMyDash}
                 disabled={installing}
                 className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow cursor-pointer active:scale-95 disabled:opacity-50"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 {installing
                   ? t(`Installing from ${selectedRepo} (${progress}%)...`, `جارٍ التثبيت (${progress}%)...`)
-                  : t(`Flash DashBar from ${selectedRepo.split('/')[1] || selectedRepo}`, 'تثبيت DashBar الآن')}
+                  : t(`Flash MyDash from ${selectedRepo.split('/')[1] || selectedRepo}`, 'تثبيت MyDash الآن')}
               </button>
             )}
 

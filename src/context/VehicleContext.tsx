@@ -205,34 +205,34 @@ const INITIAL_TRIPS: RecordedTrip[] = [
 
 export const VehicleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [telemetry, setTelemetry] = useState<VehicleTelemetry>(() => {
-    const saved = localStorage.getItem('dashbar_telemetry');
+    const saved = localStorage.getItem('mydash_telemetry') || localStorage.getItem('dashbar_telemetry');
     return saved ? JSON.parse(saved) : INITIAL_TELEMETRY;
   });
 
   const [reminderSettings, setReminderSettings] = useState<ReminderSettings>(() => {
-    const saved = localStorage.getItem('dashbar_reminders');
+    const saved = localStorage.getItem('mydash_reminders') || localStorage.getItem('dashbar_reminders');
     return saved ? JSON.parse(saved) : INITIAL_REMINDERS;
   });
 
   const [drawerSettings, setDrawerSettings] = useState<DrawerSettings>(() => {
-    const saved = localStorage.getItem('dashbar_drawer');
+    const saved = localStorage.getItem('mydash_drawer') || localStorage.getItem('dashbar_drawer');
     return saved ? JSON.parse(saved) : { side: 'right', autoHideSecs: 5, gridIdx: 1, tabHeightOffset: 0 };
   });
 
   const [favorites, setFavorites] = useState<AppFavorite[]>(() => {
-    const saved = localStorage.getItem('dashbar_favorites');
+    const saved = localStorage.getItem('mydash_favorites') || localStorage.getItem('dashbar_favorites');
     return saved ? JSON.parse(saved) : INITIAL_FAVORITES;
   });
 
   const [runningApps, setRunningApps] = useState<RunningApp[]>(INITIAL_RUNNING_APPS);
 
   const [fuelLedger, setFuelLedger] = useState<FuelLedgerConfig>(() => {
-    const saved = localStorage.getItem('dashbar_fuel_ledger');
+    const saved = localStorage.getItem('mydash_fuel_ledger') || localStorage.getItem('dashbar_fuel_ledger');
     return saved ? JSON.parse(saved) : INITIAL_FUEL_LEDGER;
   });
 
   const [recordedTrips, setRecordedTrips] = useState<RecordedTrip[]>(() => {
-    const saved = localStorage.getItem('dashbar_trips');
+    const saved = localStorage.getItem('mydash_trips') || localStorage.getItem('dashbar_trips');
     return saved ? JSON.parse(saved) : INITIAL_TRIPS;
   });
 
@@ -266,23 +266,23 @@ export const VehicleProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Save changes to localStorage
   useEffect(() => {
-    localStorage.setItem('dashbar_reminders', JSON.stringify(reminderSettings));
+    localStorage.setItem('mydash_reminders', JSON.stringify(reminderSettings));
   }, [reminderSettings]);
 
   useEffect(() => {
-    localStorage.setItem('dashbar_drawer', JSON.stringify(drawerSettings));
+    localStorage.setItem('mydash_drawer', JSON.stringify(drawerSettings));
   }, [drawerSettings]);
 
   useEffect(() => {
-    localStorage.setItem('dashbar_favorites', JSON.stringify(favorites));
+    localStorage.setItem('mydash_favorites', JSON.stringify(favorites));
   }, [favorites]);
 
   useEffect(() => {
-    localStorage.setItem('dashbar_fuel_ledger', JSON.stringify(fuelLedger));
+    localStorage.setItem('mydash_fuel_ledger', JSON.stringify(fuelLedger));
   }, [fuelLedger]);
 
   useEffect(() => {
-    localStorage.setItem('dashbar_trips', JSON.stringify(recordedTrips));
+    localStorage.setItem('mydash_trips', JSON.stringify(recordedTrips));
   }, [recordedTrips]);
 
   const updateTelemetry = useCallback((partial: Partial<VehicleTelemetry>) => {

@@ -169,7 +169,7 @@ export const EdgeDock: React.FC = () => {
           className={`flex items-center gap-1.5 py-4 px-2 bg-[#121820]/95 hover:bg-[#1a232e] text-teal-400 border border-teal-500/30 backdrop-blur-md shadow-2xl transition-all duration-200 cursor-pointer group ${
             isLeft ? 'rounded-r-2xl border-l-0 pl-1.5' : 'rounded-l-2xl border-r-0 pr-1.5'
           }`}
-          title={isArabic ? 'فتح درج التطبيقات DashBar' : 'Open DashBar Dock'}
+          title={isArabic ? 'فتح درج التطبيقات MyDash' : 'Open MyDash Dock'}
         >
           {/* Bahrain flag emblem accent stripe */}
           <div className="w-1.5 h-8 rounded-full overflow-hidden flex flex-col border border-white/20">
@@ -177,7 +177,7 @@ export const EdgeDock: React.FC = () => {
             <div className="h-1/2 bg-white"></div>
           </div>
           <div className="flex flex-col items-center">
-            <span className="font-extrabold text-sm tracking-widest text-teal-300 font-mono">Q</span>
+            <span className="font-extrabold text-sm tracking-widest text-teal-300 font-mono">M</span>
             {isLeft ? (
               <ChevronRight className="w-4 h-4 text-teal-400 group-hover:translate-x-0.5 transition-transform" />
             ) : (
@@ -210,10 +210,10 @@ export const EdgeDock: React.FC = () => {
           <div className="p-4 pb-2 flex items-center justify-between border-b border-white/5">
             <div className="flex items-center gap-2.5">
               <div className="w-7 h-7 rounded-lg bg-teal-500/20 text-teal-300 flex items-center justify-center font-bold text-sm border border-teal-500/30">
-                Q
+                M
               </div>
               <div>
-                <h3 className="font-bold text-sm tracking-wide text-white">DashBar Dock</h3>
+                <h3 className="font-bold text-sm tracking-wide text-white">MyDash Dock</h3>
                 <p className="text-[11px] text-slate-400">
                   {activeSubView === 'grid'
                     ? isEditing
